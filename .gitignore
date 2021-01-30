@@ -1,0 +1,7 @@
+# Binary executables
+bin/
+
+assets/
+
+# Mac OS
+.DS_Store

@@ -1,0 +1,22 @@
+#+title: asana-to-org
+
+#+begin_quote
+CLI tool to create [[https://orgmode.org/][org]] file from [[https://app.asana.com][Asana]] tasks
+#+end_quote
+
+* Table of content :TOC_2:
+- [[#usage][Usage]]
+  - [[#check-help][Check help]]
+  - [[#create-org-file][Create org file]]
+
+* Usage
+** Check help
+#+begin_src sh
+asana-to-org --help
+#+end_src
+
+** Create org file
+#+begin_src sh
+asana-to-org tasks.json
+#+end_src
+where ~tasks.json~ is your JSON file exported from Asana
