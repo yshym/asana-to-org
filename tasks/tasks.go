@@ -34,6 +34,7 @@ func (data *Data) FromJSON(r io.Reader) error {
 // Task provides asana task data
 type Task struct {
 	GID         string       `json:"gid"`
+	Assignee    Assignee     `json:"assignee"`
 	Name        string       `json:"name"`
 	Notes       string       `json:"notes"`
 	CompletedAt string       `json:"completed_at"`
@@ -45,6 +46,11 @@ type Task struct {
 func (t *Task) String() string {
 	keyword := "TODO"
 	includeCompleted := os.Getenv("INCLUDE_COMPLETED") == "true"
+	assignee := os.Getenv("ASSIGNEE")
+
+	if t.Assignee == (Assignee{}) || t.Assignee.Name != assignee {
+		return ""
+	}
 
 	if t.CompletedAt != "" {
 		if !includeCompleted {
@@ -78,12 +84,18 @@ func (t *Task) String() string {
 	return taskBuilder.String()
 }
 
-// Parent provides parent task data
+// Assignee provides task assignee data
+type Assignee struct {
+	GID  string `json:"gid"`
+	Name string `json:"name"`
+}
+
+// Parent provides task parent data
 type Parent struct {
 	GID string `json:"gid"`
 }
 
-// Membership provides tasl memebership data
+// Membership provides task memebership data
 type Membership struct {
 	Section *Section `json:"section"`
 }
@@ -101,7 +113,10 @@ func (s *Section) String() string {
 	sectionBuilder.WriteString(fmt.Sprintf("* %s", s.Name))
 
 	for _, t := range s.Tasks {
-		sectionBuilder.WriteString(fmt.Sprintf("\n%s", t.String()))
+		tString := t.String()
+		if tString != "" {
+			sectionBuilder.WriteString(fmt.Sprintf("\n%s", tString))
+		}
 	}
 
 	return sectionBuilder.String()
@@ -131,9 +146,16 @@ func NewSections(tasks []Task) Sections {
 }
 
 func (ss Sections) String() string {
+	gids := make([]string, 0, len(ss))
+	for gid := range ss {
+        gids = append(gids, gid)
+    }
+
 	var sectionsBuilder strings.Builder
 
-	for _, s := range ss {
+	for _, gid := range gids {
+		s := ss[gid]
+
 		sectionsBuilder.WriteString(s.String())
 		sectionsBuilder.WriteRune('\n')
 	}

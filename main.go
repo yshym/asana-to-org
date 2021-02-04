@@ -25,9 +25,15 @@ func run() error {
 		fmt.Sprintf("%s.org", strings.TrimSuffix(fp, filepath.Ext(fp))),
 		"Output file",
 	)
+	assignee := flag.String(
+		"assignee",
+		"",
+		"Task assignee",
+	)
 	includeComleted := flag.Bool("wc", false, "Include completed tasks")
 	flag.Parse()
 
+	os.Setenv("ASSIGNEE", *assignee)
 	os.Setenv("INCLUDE_COMPLETED", strconv.FormatBool(*includeComleted))
 
 	f, err := os.Open(fp)
