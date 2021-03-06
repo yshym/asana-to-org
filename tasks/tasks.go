@@ -122,22 +122,43 @@ func (s *Section) String() string {
 	return sectionBuilder.String()
 }
 
-type Sections map[string]*Section
+// Sections provides list of sections data
+type Sections struct {
+	kv map[string]*Section
+	l  []string
+}
+
+// Get returns the section for a GID
+func (ss *Sections) Get(k string) (*Section, bool) {
+	v, ok := ss.kv[k]
+	if !ok {
+		return nil, false
+	}
+
+	return v, true
+}
+
+// Set sets (or replaces) the section for a GID
+func (ss *Sections) Set(k string, v *Section) *Section {
+	ss.kv[k] = v
+	ss.l = append(ss.l, k)
+	return v
+}
 
 // NewData creates a Sections object
 func NewSections(tasks []Task) Sections {
-	sections := make(Sections)
+	sections := Sections{}
 	includeCompleted := os.Getenv("INCLUDE_COMPLETED") == "true"
 
 	for _, task := range tasks {
 		if includeCompleted || !includeCompleted && task.CompletedAt == "" {
 			taskSection := task.Memberships[0].Section
-			_, ok := sections[taskSection.GID]
+			_, ok := sections.Get(taskSection.GID)
 			if !ok {
-				sections[taskSection.GID] = taskSection
+				sections.Set(taskSection.GID, taskSection)
 			}
 
-			section := sections[taskSection.GID]
+			section, _ := sections.Get(taskSection.GID)
 			section.Tasks = append(section.Tasks, task)
 		}
 	}
@@ -146,15 +167,10 @@ func NewSections(tasks []Task) Sections {
 }
 
 func (ss Sections) String() string {
-	gids := make([]string, 0, len(ss))
-	for gid := range ss {
-        gids = append(gids, gid)
-    }
-
 	var sectionsBuilder strings.Builder
 
-	for _, gid := range gids {
-		s := ss[gid]
+	for _, gid := range ss.l {
+		s, _ := ss.Get(gid)
 
 		sectionsBuilder.WriteString(s.String())
 		sectionsBuilder.WriteRune('\n')
